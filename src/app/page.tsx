@@ -4,7 +4,7 @@ import type { UserData } from '@stacks/connect';
 import { AppConfig, UserSession, showConnect, } from "@stacks/connect";
 import { StacksTestnet } from "@stacks/network";
 import { bytesToHex, hexToBytes } from '@stacks/common';
-import { sbtcDepositHelper, UtxoWithTx, WALLET_00 } from 'sbtc';
+import { sbtcDepositHelper, WALLET_00 } from 'sbtc';
 import * as btc from '@scure/btc-signer';
 
 // Network configuration
@@ -32,13 +32,6 @@ export default function Home() {
   const [depositInfo, setDepositInfo] = useState<depositInfoType>(emptyDepositInfo);
   const [userData, setUserData] = useState<UserData | null>(null);
   
-  // Log current state for debug purposes
-  // useEffect(() => {
-  //   console.log("NEW STATE: ", state);
-  //   console.log("WALLET: ", wallet);
-  //   console.log("DEPOSIT INFO: ", depositInfo);
-  // }, [state]);
-
   // Reset application
   const reset = () : void => {
     setState("DISCONNECTED");
@@ -66,19 +59,7 @@ export default function Home() {
 
   // Retrieve necessary information from the wallet and from the network
   // This method depends on the network we are on. For now, it is implemented
-  // for the local Development Network. Also, there are a few issues:
-  // 
-  // setBtcAddress(userData.profile.btcAddress.p2wpkh.testnet);
-  // setBtcPublicKey(userData.profile.btcPublicKey.p2wpkh);
-  // Because of some quirks with Leather, we need to pull our BTC wallet using
-  // the helper if we are on devnet
-  // The following, as noted in the documentation, fails.
-  // According to Leather, the STX Address is the same as on the testnet.
-  // In fact, it coincides with the SBTC_FT_ADDRESS_DEVENV in the constants
-  // file (sbc).
-  // setStxAddress(bitcoinAccountA.tr.address);
-  // setFeeRate(await network.estimateFeeRate('low'));
-  // setSbtcPegAddress(await network.getSbtcPegAddress());
+  // for the local Development Network.
   const getWalletAndDepositDetails = async (userData:UserData) => {
     const bitcoinAccountA = await NETWORK.getBitcoinAccount(WALLET_00);
     const addressBTC = bitcoinAccountA.wpkh.address;
@@ -91,14 +72,9 @@ export default function Home() {
       publicKeyBTC: bitcoinAccountA.publicKey.buffer.toString(),
       balanceBTC: balanceBTC,
       balanceSBTC: await getBalanceSBTC(addressSTX),
-      utxos: await NETWORK.fetchUtxos(addressBTC),
     });
     // Deposit Information
-    // const feeRate = 1;
     const feeRate = await getFeeRate();
-    // const feeRates = await NETWORK.estimateFeeRates();
-    // console.log(feeRates);
-    // const feeRate = await NETWORK.estimateFeeRate('low');
     setDepositInfo({ ...depositInfo,
       addressPeg: await NETWORK.getSbtcPegAddress(),
       feeRate: feeRate,
@@ -161,28 +137,17 @@ export default function Home() {
   const waitForConfirmation = (txid : string) => {
     const intervalId = setInterval(() => {
       waitUntilConfirmed(txid, intervalId);
-        // fetch(`${mempoolTxAPIUrl}${txid}/status`,{mode: 'no-cors'})
-        //   .then((response) => response.json())
-        //   .then((status) => {
-        //     if (status.confirmed) {
-        //       console.log("checkTX: CONFIRMED!");
-        //       setConfirmed(true);
-        //       clearInterval(intervalId);
-        //     }
-        //   })
-        //   .catch((err) => console.error(err));
     }, 10000);
   }
 
   // Hook to start deposit
   const deposit = async () => {
     const tx = await sbtcDepositHelper({
-      // network: TESTNET,
       // pegAddress: sbtcPegAddress,
       stacksAddress:        wallet.addressSTX as string,
       amountSats:           DEPOSITAMOUNT,
-      feeRate:              depositInfo.feeRate as number,
-      utxos:                wallet.utxos as UtxoWithTx[],
+      feeRate:              await getFeeRate(),
+      utxos:                await NETWORK.fetchUtxos(wallet.addressBTC as string),
       bitcoinChangeAddress: wallet.addressBTC as string,
     });
     setDepositInfo({ ...depositInfo, tx: tx });
@@ -307,7 +272,7 @@ export default function Home() {
                           <Badge
                             color="warning"
                           >
-                            {depositInfo.feeRate as number} sat/byte fee
+                            {depositInfo.feeRate as number} sat/vB fee
                           </Badge>
                         </span>
                       </Alert>

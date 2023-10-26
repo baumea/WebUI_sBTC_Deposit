@@ -1,4 +1,3 @@
-import { type UtxoWithTx } from 'sbtc';
 import { type Transaction } from '@scure/btc-signer';
 import { NETWORK, MEMPOOLTXAPIURL, STACKSAPIURL, MEMPOOLURLADDRESS, STACKSURLADDRESS, STACKSURLADDRESSPOST, MEMPOOLTXURL } from './netconfig';
 
@@ -48,14 +47,13 @@ export type walletType = {
   publicKeyBTC:    string | undefined,
   balanceSBTC:     number | undefined,
   addressSTX:      string | undefined,
-  utxos:           UtxoWithTx[] | undefined,
 }
 
 export type depositInfoType = {
   addressPeg: string | undefined,
-  feeRate:    number | undefined,
   tx:         Transaction | undefined,
   finalTx:    string | undefined,
+  feeRate:    number | undefined,
 }
 
 export const emptyWallet: walletType = {
@@ -65,14 +63,13 @@ export const emptyWallet: walletType = {
   publicKeyBTC:    undefined,
   balanceSBTC:     undefined,
   addressSTX:      undefined,
-  utxos:           undefined,
 }
 
 export const emptyDepositInfo: depositInfoType = {
   addressPeg: undefined,
-  feeRate:    undefined,
   tx:         undefined,
   finalTx:    undefined,
+  feeRate:    undefined,
 }
 
 export const humanReadableNumber = (number: number): string => {
