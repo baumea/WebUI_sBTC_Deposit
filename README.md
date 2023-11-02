@@ -1,3 +1,5 @@
+:warning: *This repository moved to a [self-hosted DevOps platform](https://git.indyfac.ch/amin/Webui_sBTC_Deposit) and is archived here.*
+
 # Web Interace to deposit sBTC
 
 This interace has been developed within the sBTC Developer Release Program.
